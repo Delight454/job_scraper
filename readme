@@ -1,0 +1,125 @@
+# VacancyMail Job Scraper
+======================
+
+A Python script that scrapes job listings from VacancyMail Zimbabwe and saves them to a CSV file.
+
+## Features
+--------
+
+* Scrapes job title, company, location, expiry date, and description
+* Saves data in structured CSV format
+* Handles HTTP response validation
+* Processes first 10 job listings
+* Includes error handling
+
+## Requirements
+------------
+
+* Python 3.x
+* `requests` library
+* `beautifulsoup4` library
+* `csv` (built-in Python library)
+
+## Installation
+------------
+
+```bash
+pip install requests beautifulsoup4
+```
+
+## Usage
+-----
+
+Save the script as `vacancy_scraper.py` and run:
+
+```bash
+python vacancy_scraper.py
+```
+
+The script will create a `scraped_jobs.csv` file in the same directory with the scraped job data.
+
+## Code
+-----
+
+```python
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+# Send request to the VacancyMail jobs page
+url = 'https://vacancymail.co.zw/jobs/'
+response = requests.get(url)
+
+# Check response status
+if response.status_code == 200:
+    soup = BeautifulSoup(response.text, 'html.parser')
+    # Find job listings
+    job_listings = soup.find_all('a', class_='job-listing')
+    
+    # Create a CSV file
+    with open('scraped_jobs.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Job Title', 'Company', 'Location', 'Expiry Date', 'Job Description'])
+        
+        # Loop through the first 10 jobs
+        for job in job_listings[:10]:
+            title = job.find('h3', class_='job-listing-title').text.strip()
+            company = job.find('h4', class_='job-listing-company').text.strip()
+            description = job.find('p', class_='job-listing-text').text.strip()
+            footer_items = job.find('div', class_='job-listing-footer').find_all('li')
+            location = footer_items[0].text.strip()
+            expiry = footer_items[1].text.replace("Expires", "").strip()
+            
+            # Write to CSV
+            writer.writerow([title, company, location, expiry, description])
+    
+    print("✅ scraped_jobs.csv has been created!")
+else:
+    print("❌ Failed to fetch the page. Status code:", response.status_code)
+```
+
+## Output
+--------
+
+The script creates a CSV file with the following columns:
+
+| Column Name | Description |
+|-------------|-------------|
+| Job Title   | Job position title |
+| Company     | Hiring company name |
+| Location    | Job location |
+| Expiry Date | Job posting expiry date |
+| Job Description | Job details |
+
+## Notes
+-----
+
+* The script scrapes the first 10 job listings by default
+* The CSV file is created in the same directory as the script
+* The script includes basic error handling for HTTP requests
+* The output file uses UTF-8 encoding to handle special characters
+
+## License
+-------
+
+MIT License
+
+Copyright (c) [2025] [Delight]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
